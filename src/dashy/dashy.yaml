@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashy
+  namespace: home-lab
+  labels:
+    app: dashy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dashy
+  template:
+    metadata:
+      labels:
+        app: dashy
+    spec:
+      containers:
+        - name: dashy
+          image: lissy93/dashy
+          resources:
+            limits:
+              cpu: 500m
+              memory: 500Mi
+            requests:
+              cpu: 300m
+              memory: 200Mi
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: dashy-volume
+              mountPath: /app/public/
+      volumes:
+        - name: dashy-volume
+          persistentVolumeClaim:
+            claimName: default-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashy-lb
+  namespace: home-lab
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  selector:
+    app: dashy
+  ports:
+    - name: dashy
+      protocol: TCP
+      port: 8080
+      targetPort: 80
